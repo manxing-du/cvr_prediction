@@ -9,7 +9,7 @@ def convert_to_sparse_matrix(data):
     for line in data:
         raw_data = line.split(' ')
         label[i, 0] = raw_data[0]
-        features = raw_data[2:]
+        features = raw_data[1:]
         indices = map(lambda x: x.split(':')[0], features)
         binary_data = map(lambda x: x.split(':')[1], features)
         mtx[i, indices] = binary_data

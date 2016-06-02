@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from lr_model import LR_predict,LR_fit_country
 from sklearn.cluster import KMeans
-
+from sklearn.datasets import load_svmlight_file
 
 import pickle
 from read_sparse_matrix import convert_to_sparse_matrix
@@ -15,7 +15,7 @@ from kmeans_cluster import Run_Kmeans
 from sklearn.metrics import roc_curve, auc, roc_auc_score, mean_squared_error
 
 
-# In[23]:
+# In[2]:
 
 def cluster_lr_model(mtx_train,mtx_test,num_cluster):
     cluster_train, cluster_test = Run_Kmeans(mtx_train, mtx_test, num_cluster)
@@ -37,13 +37,22 @@ def cluster_lr_model(mtx_train,mtx_test,num_cluster):
         test_cluster_label = label_test[test_cluster_index]
         test_cluster_label = np.ravel(test_cluster_label)
         test_cluster_features = mtx_test[test_cluster_index, :]
-
-        pCVR, predict_CVR, auc_score, lg_rmse = LR_predict(cluster_features, cluster_label,
+        
+        ##check label in clusters
+        if len(set(cluster_label))==1 :
+            if cluster_label[0] == 1:
+                print("Cluster %d has eCVR: 1 " % (i))
+                pCVR = np.ones((len(test_cluster_label),1))
+            else:
+                print("Cluster %d has eCVR: 0" % (i))
+                pCVR = np.zeros((len(test_cluster_label),0))
+            
+        else:
+            pCVR, predict_CVR, auc_score, lg_rmse = LR_predict(cluster_features, cluster_label,
                                                            test_cluster_features, test_cluster_label)
-
-        unique, counts = np.unique(test_cluster_label, return_counts=True)
-        eCVR = float(counts[1]) / float(sum(counts))
-        print("Cluster %d ROC AUC score for LR is %.4f, eCVR is %.4f, RMSE is %.4f" % (i, auc_score, eCVR, lg_rmse))
+            unique, counts = np.unique(test_cluster_label, return_counts=True)
+            eCVR = float(counts[1]) / float(sum(counts))
+            print("Cluster %d ROC AUC score for LR is %.4f, eCVR is %.4f, RMSE is %.4f" % (i, auc_score, eCVR, lg_rmse))
 
         pCVR_all.extend(pCVR[:, 1])
         label_reset.extend(test_cluster_label)
@@ -53,7 +62,9 @@ def cluster_lr_model(mtx_train,mtx_test,num_cluster):
     print np.sqrt(mean_squared_error(label_reset, pCVR_all))
 
 
-# In[14]:
+# In[3]:
+
+'''
 
 def country_lr_model(mtx_train,train_country_list):
     print "###total country"
@@ -109,14 +120,23 @@ def country_lr_model_prediction(mtx_test, test_country_list, country_model):
             lg_rmse = None
         
         return country, pCVR, eCVR, predict_CVR, auc_score, lg_rmse
+        
+        
+'''
 
 
-# In[ ]:
+# In[4]:
+
 
 if __name__ == '__main__':
     # Reading training and testing data
-    train_data = file('../../../iPinyou/ipinyou-data-addflag/train.flag.txt').readlines()
-    test_data = file('../../../iPinyou/ipinyou-data-addflag/test.flag.txt').readlines()
+    train_data = file('../../../iPinyou/ipinyou-data-addflag/train.flag.libsvm.txt').readlines()
+    test_data = file('../../../iPinyou/ipinyou-data-addflag/test.flag.libsvm.txt').readlines()
+    
+    #train_data = file('../../../iPinyou/make-ipinyou-data-master/3476/train.yzx.txt').readlines()
+    #test_data = file('../../../iPinyou/make-ipinyou-data-master/3476/test.yzx.txt').readlines()
+    
+    
 
     #mtx_train, label_train, train_country_list = convert_to_sparse_matrix(train_data)
     #mtx_test, label_test, test_country_list= convert_to_sparse_matrix(test_data)
@@ -138,28 +158,34 @@ if __name__ == '__main__':
     '''
 
 
-# In[12]:
+# In[5]:
 
-print type(train_country_list[0])
+print mtx_test.shape
+print mtx_train.shape
+
+
+# In[6]:
+
+### CTR/CVR predicion One LR model
+pCVR, predict_CVR, auc_score, lg_rmse = LR_predict(mtx_train,label_train,mtx_test,label_test)
+rate = float(predict_CVR)/cvr
+print ("LR model with AUC: %.4f, RMSE: %.4f, CVR_ratio: %.4f" %(auc_score, lg_rmse, rate))
+
+
+# In[7]:
+
+##### Clustering + LR per cluster
+#cluster_lr_model(mtx_train,mtx_test,16)
+# Testing
 
 
 # In[8]:
 
-##### Clustering + LR per cluster
-    cluster_lr_model(mtx_train,mtx_test,16)
-    # Testing
-
-
-# In[15]:
-
+'''
 # LR per country
 country_model = {}
 country_model = country_lr_model(mtx_train,train_country_list)
 country, pCVR, eCVR, predict_CVR, auc_score, lg_rmse = country_lr_model_prediction(mtx_test, test_country_list, country_model)
 print ("country %s with eCVR %.4f, auc_score is %.4f, lg_rmse is %.4f" % (country, eCVR,auc_score,lg_rmse))
-
-
-# In[13]:
-
-print train_country_list
+'''
 

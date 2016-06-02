@@ -1,19 +1,24 @@
 
 # coding: utf-8
 
-# In[25]:
+# In[107]:
 
 import pandas as pd
 
-df = pd.read_csv("../../../iPinyou/make-ipinyou-data-master/all/test.log.txt",header=0,sep='\t',index_col=False)
+df = pd.read_csv("../../../iPinyou/make-ipinyou-data-master/3476/train.log.txt",header=0,sep='\t',index_col=False)
 
 
-# In[26]:
+# In[108]:
+
+print df.shape
+
+
+# In[109]:
 
 print df[["click","weekday","hour","advertiser"]].head()
 
 
-# In[27]:
+# In[110]:
 
 ###############Campaign cvr
 import matplotlib.pyplot as plt
@@ -26,7 +31,7 @@ df_add_features = pd.DataFrame(df_sub_cvr.groupby(['advertiser','weekday','hour'
 print df_add_features.head()
 
 
-# In[28]:
+# In[111]:
 
 #i = 0
 for name, group in df_add_features.groupby(['advertiser','weekday','hour']): 
@@ -51,7 +56,7 @@ for name, group in df_add_features.groupby(['advertiser','weekday','hour']):
     #    break
 
 
-# In[29]:
+# In[112]:
 
 # compare the previous two hours (t-1, t-2) cvr
 from itertools import izip
@@ -95,7 +100,7 @@ print cvr_diff_result.tail()
 #print cvr_diff_result[cvr_diff_result['idcampaign'] == 90]
 
 
-# In[30]:
+# In[113]:
 
 df_merge = pd.merge(df,cvr_diff_result[['advertiser','weekday','hour','diff_cvr_1']], 
                     how='left', on=['advertiser','weekday','hour'])
@@ -103,7 +108,7 @@ print df_merge.tail()
 print df_merge.shape[0]
 
 
-# In[31]:
+# In[114]:
 
-df_merge.to_csv('../../../iPinyou/ipinyou-data-addflag/ipinyou_testall.flag.csv',index=False, sep="\t")
+df_merge.to_csv('../../../iPinyou/ipinyou-data-addflag/3476.train.flag.txt',index=False, sep="\t")
 
