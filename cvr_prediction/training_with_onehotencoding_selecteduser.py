@@ -39,7 +39,23 @@ train_df = train_df.replace([-1],[2])
 test_df = test_df.replace([-1],[2])
 
 
+hawkes = [100,281,324,324,2500,8414]
+hawkes_campaign = [4755, 4398, 4755, 4848, 4848, 4755]
 
+
+top_U_revenue = top_users_revenue.drop(['user_id'], axis = 1 , errors= 'ignore')
+top_U_revenue = top_U_revenue.reset_index()
+
+#user_campaign_revenue = user_campaign_revenuelist.drop(['user_id','idcampaign'], axis = 1,errors= 'ignore')
+#user_campaign_revenue = user_campaign_revenue.reset_index()
+
+samples = zip(hawkes, hawkes_campaign)
+samples = pd.DataFrame(samples, columns=['user_id', 'idcampaign'])
+
+result = pd.merge(samples, user_campaign_revenue, how='inner')
+
+
+train_df.loc[~(train_df['user_id'].isin()&(train_df))
 
 
 train_features = train_df[["hour", "weekday", "country_code", "idoperator", "idhardware", "idbrowser", "idos",

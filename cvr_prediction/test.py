@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[1]:
+# In[2]:
 
 import numpy as np
 import pandas as pd
@@ -15,8 +15,20 @@ from kmeans_cluster import Run_Kmeans
 from sklearn.metrics import roc_curve, auc, roc_auc_score, mean_squared_error
 
 
-# In[2]:
 
+from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import GaussianNB
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import VotingClassifier
+
+from sklearn.naive_bayes import MultinomialNB
+from math import sqrt
+from sklearn.grid_search import GridSearchCV
+
+
+# In[ ]:
+
+'''
 def cluster_lr_model(mtx_train,mtx_test,num_cluster):
     cluster_train, cluster_test = Run_Kmeans(mtx_train, mtx_test, num_cluster)
 
@@ -60,9 +72,10 @@ def cluster_lr_model(mtx_train,mtx_test,num_cluster):
     overall_auc = roc_auc_score(label_reset, pCVR_all)
     print ("Overall auc is %.4f" % overall_auc)
     print np.sqrt(mean_squared_error(label_reset, pCVR_all))
+'''
 
 
-# In[3]:
+# In[ ]:
 
 '''
 
@@ -125,19 +138,20 @@ def country_lr_model_prediction(mtx_test, test_country_list, country_model):
 '''
 
 
-# In[4]:
+# In[ ]:
 
 
 if __name__ == '__main__':
     # Reading training and testing data
-    train_data = file('../../../iPinyou/ipinyou-data-addflag/train.flag.libsvm.txt').readlines()
-    test_data = file('../../../iPinyou/ipinyou-data-addflag/test.flag.libsvm.txt').readlines()
+    #train_data = file('../../../iPinyou/ipinyou-data-addflag/train.flag.libsvm.txt').readlines()
+    #test_data = file('../../../iPinyou/ipinyou-data-addflag/test.flag.libsvm.txt').readlines()
     
-    #train_data = file('../../../iPinyou/make-ipinyou-data-master/3476/train.yzx.txt').readlines()
-    #test_data = file('../../../iPinyou/make-ipinyou-data-master/3476/test.yzx.txt').readlines()
+    #train_data = file('../../../iPinyou/make-ipinyou-data-master/2261/train.yzx.txt').readlines()
+    #test_data = file('../../../iPinyou/make-ipinyou-data-master/2261/test.yzx.txt').readlines()
     
+    train_data = file('../Data/binary/train_1519.xyz.txt').readlines()
+    test_data = file('../Data/binary/test_2021.xyz.txt').readlines()
     
-
     #mtx_train, label_train, train_country_list = convert_to_sparse_matrix(train_data)
     #mtx_test, label_test, test_country_list= convert_to_sparse_matrix(test_data)
     mtx_train, label_train = convert_to_sparse_matrix(train_data)
@@ -158,28 +172,64 @@ if __name__ == '__main__':
     '''
 
 
-# In[5]:
+# In[ ]:
+
+dense_mtx_train = mtx_train.toarray()
+dense_mtx_test = mtx_test.toarray()
+
+
+# In[ ]:
+
+mtx_train_only_decay_purchase = mtx_train[:,:-2]
+
+
+# In[ ]:
+
+#print mtx_train_only_decay_purchase.shape
+
+
+# In[ ]:
+
+mtx_test_only_decay_purchase = mtx_test[:,:-2]
+
+
+# In[ ]:
+
+##### calculate empirical cvr
+elements, repeats = np.unique(label_train, return_counts=True)
+traincvr = float(repeats[1]) / float(repeats.sum())
+print traincvr
+
+
+# In[ ]:
 
 print mtx_test.shape
 print mtx_train.shape
 
 
-# In[6]:
+# In[4]:
 
 ### CTR/CVR predicion One LR model
+
+
 pCVR, predict_CVR, auc_score, lg_rmse = LR_predict(mtx_train,label_train,mtx_test,label_test)
 rate = float(predict_CVR)/cvr
 print ("LR model with AUC: %.4f, RMSE: %.4f, CVR_ratio: %.4f" %(auc_score, lg_rmse, rate))
 
 
-# In[7]:
+# In[ ]:
+
+print predict_CVR
+
+
+# In[ ]:
 
 ##### Clustering + LR per cluster
 #cluster_lr_model(mtx_train,mtx_test,16)
 # Testing
 
 
-# In[8]:
+# In[ ]:
 
 '''
 # LR per country
@@ -187,5 +237,67 @@ country_model = {}
 country_model = country_lr_model(mtx_train,train_country_list)
 country, pCVR, eCVR, predict_CVR, auc_score, lg_rmse = country_lr_model_prediction(mtx_test, test_country_list, country_model)
 print ("country %s with eCVR %.4f, auc_score is %.4f, lg_rmse is %.4f" % (country, eCVR,auc_score,lg_rmse))
+'''
+
+
+# In[ ]:
+
+'''
+###Ensembling models
+clf1 = LogisticRegression(random_state=44,penalty='l2')
+clf2 = RandomForestClassifier(random_state=1, n_estimators=100)
+clf3 = MultinomialNB()
+eclf = VotingClassifier(estimators=[('lr', clf1), ('rf', clf2)], voting='soft')
+'''
+
+
+# In[ ]:
+
+'''
+clf = RandomForestClassifier(random_state=1, n_estimators=100)
+clf = clf.fit(mtx_train,label_train)
+pCVR = clf.predict_proba(mtx_test)
+auc_score = roc_auc_score(label_test,pCVR[:,1])
+print auc_score
+'''
+
+
+# In[ ]:
+
+'''
+eclf = eclf.fit(mtx_train,label_train)
+pCVR = eclf.predict_proba(mtx_test)
+auc_score = roc_auc_score(label_test,pCVR[:,1])
+'''
+
+
+# In[ ]:
+
+#params = {'lr__C': [1.0, 100.0], 'rf__n_estimators': [20, 200],}
+#grid = GridSearchCV(estimator=eclf, param_grid=params, cv=5, scoring="roc_auc")
+#grid = grid.fit(mtx_train.toarray(), label_train.ravel())
+
+
+# In[ ]:
+
+
+'''
+lg_rmse = sqrt(mean_squared_error(label_test, pCVR[:,1]))
+predict_CVR = np.mean(pCVR[:,1])
+rate = float(predict_CVR)/cvr
+print ("Ensemble model with AUC: %.4f, RMSE: %.4f, CVR_ratio: %.4f" %(auc_score, lg_rmse, rate)) 
+'''
+
+
+# In[ ]:
+
+##Grid search prameters
+'''
+pCVR = grid.predict_proba(mtx_test)
+auc_score = roc_auc_score(label_test,pCVR[:,1])
+lg_rmse = sqrt(mean_squared_error(label_test, pCVR[:,1]))
+predict_CVR = np.mean(pCVR[:,1])
+rate = float(predict_CVR)/cvr
+print ("Ensemble model after gridsearch with AUC: %.4f, RMSE: %.4f, CVR_ratio: %.4f" %(auc_score, lg_rmse, rate)) 
 '''
 
