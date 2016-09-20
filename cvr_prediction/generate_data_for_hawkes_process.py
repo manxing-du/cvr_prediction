@@ -177,7 +177,7 @@ print check_bigcampaign_global.head(100)
 print df_big_camp.tail(2)
 
 
-# In[ ]:
+# In[16]:
 
 def add_delta_time(group):
     stop = None
@@ -738,6 +738,7 @@ percentage_users, percentage_users_pur, top_users_click,top_users_purchase = plo
 
 # In[165]:
 
+### 1: % of users generate 80% clicks.      2: % of users generate 80% purchase
 print percentage_users, percentage_users_pur
 
 
@@ -749,6 +750,8 @@ print uID_with_cvr_counts_sorted.loc[uID_with_cvr_counts_sorted.clicks > 10000].
 
 
 # In[43]:
+
+#print the time to the first purchase (minutes)
 
 def output_purchasetime_for_topUtopC(group):
     
@@ -1136,6 +1139,9 @@ print merge_data.shape
 
 # In[58]:
 
+##########################Need to Run R script to generate files in 0715-19/train-test-merge-add-intensity/ first########################
+
+
 ######Read hawkes prob. files
 import os
 import re
@@ -1275,6 +1281,9 @@ groups = hawkes_init.groupby(['user_id','idcampaign'])
 
 # In[78]:
 
+
+### Get the previous 1,2,3 minutes intensity values as features
+
 start_df="None"
 for profile, group in groups: 
     print profile
@@ -1338,6 +1347,8 @@ for profile, group in groups:
 
 
 # In[81]:
+
+###To convert continuous values to binary
 
 final_df['intensity_2'].fillna(0,inplace=True)
 final_df['intensity'].fillna(0,inplace=True)
