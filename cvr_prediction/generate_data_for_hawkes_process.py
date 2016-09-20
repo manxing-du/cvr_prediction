@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[2]:
+# In[1]:
 
 import pandas as pd
 import numpy as np
@@ -14,10 +14,9 @@ from datetime import datetime, timedelta
 import seaborn.apionly as sns
 
 
-# In[3]:
+# In[2]:
 
 train = pd.read_csv("../Data/initial-parse/train_1519.txt", header=0,sep=',',index_col=False)
-
 test = pd.read_csv("../Data/initial-parse/test_2021.txt", header=0, sep=',', index_col=False)
 
 train['uniform_price'].fillna(0,inplace=True)
@@ -30,7 +29,7 @@ test_df = test[["hour", "weekday", "country_code", "idoperator", "idhardware", "
                 "idcampaign", "idcat","idaffiliate", "aff_type","purchase", "idcampaign_diff_cvr_1", "user_id_diff_cvr_1","uniform_price","date_added_x","user_id"]].dropna()
 
 
-# In[4]:
+# In[3]:
 
 a1 = train_df[["hour", "weekday", "country_code", "idoperator", "idhardware", "idbrowser", "idos",
                               "idcampaign", "idcat", "idaffiliate", "aff_type"]]
@@ -38,17 +37,17 @@ a2 = test_df[["hour", "weekday", "country_code", "idoperator", "idhardware", "id
                               "idcampaign", "idcat", "idaffiliate", "aff_type"]]
 total = 0
 a12 = pd.concat([train_df, test_df])
+
+#iteritems iterates over columns, calculate the number of unique values per column (Total number of features)
 for name, values in a12.iteritems():
     total += values.nunique()
-print total
+print ("Total number of features: %d" %total)
 
 
 # In[20]:
 
-#print train_df.head()
 #print train.head()
-print train.head()
-print train.loc[train['date_added_full'] == 2015071506].index.tolist()[0]
+#print train.loc[train['date_added_full'] == 2015071506].index.tolist()[0]
 
 
 # In[5]:
@@ -58,16 +57,16 @@ wholeset = pd.concat([train_df, test_df])
 
 # In[6]:
 
-print wholeset.shape
+print ("The total number of clicks (including purchases) is %d" %wholeset.shape[0]) 
 
 
-# In[7]:
+# In[8]:
 
 def top_C_revenue(df):
 
     by_campaign = df.groupby('idcampaign')
     df['revenue'] = by_campaign['uniform_price'].transform('sum')
-    print ("There are %d campaigns in total" %df['idcampaign'].nunique())
+    print ("In the training set, there are %d campaigns in total" %df['idcampaign'].nunique())
 
     campaign_revenuelist = df.sort_values(['revenue'],ascending = False).drop_duplicates(['idcampaign','revenue'])
 
@@ -104,7 +103,7 @@ campaign_revenuelist = top_C_revenue(train_df)
 
 # In[9]:
 
-def calculate_campaing_cvr(df):
+def calculate_campaign_cvr(df):
     ######Add campaign cvr 
     df_camp_count = pd.DataFrame(df.groupby(['idcampaign','purchase']).size().reset_index(name='count'))
     for name, group in df_camp_count.groupby(['idcampaign']): 
@@ -126,15 +125,15 @@ def calculate_campaing_cvr(df):
     #print campaign_ecpm_list[['idcampaign']].values[:50]
     return campaign_ecpm_list
 
-campaign_rankby_eCPM = calculate_campaing_cvr(train_df)    
+campaign_rankby_eCPM = calculate_campaign_cvr(train_df)    
 
 
 # In[ ]:
 
-train_df.head()
+print campaign_rankby_eCPM.head()
 
 
-# In[10]:
+# In[11]:
 
 #####find top campaigns with highest ePCM and revenue
 top_ecpm = campaign_rankby_eCPM[['idcampaign']].values[:50].flatten()
@@ -157,12 +156,12 @@ aggregation = {
 }
 
 
-# In[11]:
+# In[12]:
 
 print top_revenue[:5]
 
 
-# In[12]:
+# In[13]:
 
 df_big_camp = df_big_camp.sort_values(by='revenue',ascending=False)
 
@@ -173,23 +172,28 @@ print check_bigcampaign_global.head(100)
 #print select.sort_values(by='count',ascending=False)
 
 
+# In[15]:
+
+print df_big_camp.tail(2)
+
+
 # In[ ]:
-
-print df_big_camp.head(2)
-
-
-# In[37]:
 
 def add_delta_time(group):
     stop = None
     group.sort_values(['fr_time'],ascending=True,inplace=True)
     #group['delta'] = np.zeros(group.shape[0])
+    #The default delta time is 5 days (same as the training data)
     group['delta'] =  [1440*5]*group.shape[0]
     group['purchase_delta'] = [1440*5]*group.shape[0]
     #group_pur = group.loc(group['purchase']==1)
     start = None
     last_delta = 1440*5
     #print group.loc[group['purchase'] == 1]
+    
+    #delta: current time (click or purchase) - the previous purchase
+    #purchase delta: the time between the previous two purchase
+    
     for index, row in group.iterrows():
         if ((row['purchase'] == 1) & (start is not None)):
             stop = row['fr_time']
@@ -272,6 +276,8 @@ def campaign_delta_time(df):
    
 ###add delta time to only top campaigns
 df_add_delta_time = campaign_delta_time(df_big_camp)
+
+
 ###add delta time to all the training data 
 #df_add_delta_time = campaign_delta_time(train_df)
 
@@ -296,6 +302,7 @@ def plot_density(delta_type, input_data, groupby_only_campaign):
     x,y = px.get_lines()[0].get_data()
     xysel = np.array([(x,y) for x,y in zip(x,y) if x > 0])
     imax = np.argmax(xysel[:,1])
+    #print the (x,y) for the peaks
     print xysel[imax]
 
     plt.xlim((0,1440*5))
@@ -375,7 +382,7 @@ test_df['fr_time'] = test_df['date_added_x'].map(lambda x:x[:x.index('+')])
 test_df['fr_time'] = test_df['fr_time'].map(lambda x :datetime.strptime(x, '%Y-%m-%d %H:%M:%S'))
 
 
-# In[42]:
+# In[ ]:
 
 ##Add delta time feature as the time to the previous purchase
 def add_time_to_purchase(group):
