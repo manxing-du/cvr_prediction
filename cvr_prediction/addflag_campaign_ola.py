@@ -5,20 +5,20 @@
 
 import pandas as pd
 
-df = pd.read_csv("campaign_testmode_week1_fullinfo.txt",header=0,sep=',',index_col=0)
-df_test = pd.read_csv("campaign_testmode_week2_fullinfo.txt", header=0, sep=',', index_col=0)
+#df = pd.read_csv("campaign_testmode_week1_fullinfo.txt",header=0,sep=',',index_col=0)
+df_test = pd.read_csv("../Data/initial-parse/campaign_testmode_week2_fullinfo.txt", header=0, sep=',', index_col=0)
 #sort_campaign = pd.value_counts(df['idcampaign'].values, sort=True)
 
 
 # In[5]:
 
-df_2days = pd.concat([df, df_test])
+#df_2days = pd.concat([df, df_test])
 
 
 # In[6]:
 
 #####user profile encoding
-df_user_profile = df_2days[['idbrowser','idos','idoperator','country_code']].drop_duplicates().reset_index()
+df_user_profile = df_test[['idbrowser','idos','idoperator','country_code']].drop_duplicates().reset_index()
 df_user_profile.head()
 
 
@@ -29,7 +29,7 @@ df_user_profile.rename(columns={'index':'user_id'}, inplace=True)
 
 # In[8]:
 
-df_add_userid = pd.merge(df_2days, df_user_profile, on=['country_code','idoperator','idbrowser','idos'], how='left')
+df_add_userid = pd.merge(df_test, df_user_profile, on=['country_code','idoperator','idbrowser','idos'], how='left')
 
 
 # In[9]:
@@ -114,18 +114,18 @@ print df_sub_cvr.head()
 print df_sub_cvr.tail()
 print df_sub_cvr.shape[0]
 
-df_print_train = df_sub_cvr[:df.shape[0]]
-df_print_test = df_sub_cvr[df.shape[0]:]
+#df_print_train = df_sub_cvr[:df.shape[0]]
+#df_print_test = df_sub_cvr[df.shape[0]:]
 
 
 # In[12]:
 
-print df_print_train.shape[0]
-print df_print_test.shape[0]
+#print df_print_train.shape[0]
+#print df_print_test.shape[0]
 
 
 # In[13]:
 
-df_print_train.to_csv('ola_dataset/campaign_testmode_week1_uflag_cflag.csv')
-df_print_test.to_csv('ola_dataset/campaign_testmode_week2_uflag_cflag.csv')
+#df_print_train.to_csv('ola_dataset/campaign_testmode_week1_uflag_cflag.csv')
+df_sub_cvr.to_csv('../Data/add_cvr_flag/campaign_testmode_week2_uflag_cflag.csv')
 

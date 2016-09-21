@@ -27,7 +27,7 @@ import math
 # read test mode data (sample with 1 million rows)
 parse_time = lambda x: datetime.datetime.strptime(x, '%Y-%m-%d %H:%M:%S')
 
-df = pd.read_csv("../Original_Data/campaign_testmode_0716.txt",header=None,sep=',',index_col=None,names=['id','idwebsite','date_added',
+df = pd.read_csv("../Original_Data/campaign_testmode_0715_0721.txt",header=None,sep=',',index_col=None,names=['id','idwebsite','date_added',
                                                                       'country_code','idoperator','idcampaign','idurl','iddevice','idhardware','idbrowser',
                                                                       'iddevicegroup','idos','flag_test_mode','idaffiliate','date_added_full','multiple_sales'],
 date_parser=parse_time, parse_dates = [2])
@@ -49,7 +49,7 @@ df['date_added_full'] = df['date_added_full'].astype(str)
 
 
 
-df_dynamic = pd.read_csv("../Original_data/dynamic_price_with_default_currency.txt",header=0, index_col=0, sep=',')
+df_dynamic = pd.read_csv("../Original_Data/dynamic_price_with_default_currency.txt",header=0, index_col=0, sep=',')
 df_dynamic['date_added_full'] = df_dynamic['date_added_full'].astype(str)
 
 # In[97]:
@@ -174,7 +174,7 @@ df_merge = df_merge[['hour','weekday','country_code','idoperator','iddevice','id
                      'idbrowser','idos','idcampaign','idcat','idaffiliate','aff_type','uniform_price','purchase','date_added_x','date_added_full']]
 df_merge.fillna("NA", inplace=True)
 
-df_merge.to_csv("../Data/initial-parse/train_0716_full.txt")
+df_merge.to_csv("../Data/initial-parse/campaign_testmode_week2_fullinfo.txt")
 
 
 

@@ -47,6 +47,6 @@ print df['hour'].unique()
 # In[39]:
 
 ####Write to file
-training_set.to_csv("train_1519.txt",index=False)
-test_set.to_csv("test_2021.txt",index=False)
+training_set.to_csv("../Data/initial-parse/train_1519.txt",index=False)
+test_set.to_csv("../Data/initial-parse/test_2021.txt",index=False)
 
